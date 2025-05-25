@@ -28,6 +28,7 @@ struct Msg {
     // 消息正文，多少字节随你而定
     // ...
 };
+```
 
 写进程代码：[write.c](write.c)
 读进程代码：[read.c](read.c)
