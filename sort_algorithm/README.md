@@ -190,7 +190,58 @@ void quick_sort(vector<int>& vec) {
 - 适用于大多数通用场景（可随机选 pivot 来避免最坏情况）
 
 ## 归并排序
+归并排序采用**分治法（Divide and Conquer）** ：
 
-## 堆排序
+1. 分：把数组分成两半，直到每个子数组只包含一个元素；
+2. 治：递归地对左右子数组进行排序；
+3. 合：将两个有序数组合并为一个大的有序数组。
 
-## 计数排序
+> 简单来说就是：**先分成小的，再合并排序**
+
+```cpp
+// 合并[left,mid] ,[mid + 1, right]
+void merge(vector<int>& vec, int left, int mid, int right) {
+    vector<int> tmp;
+    int i = left, j = mid + 1;
+
+    // 合并两个子数组
+    while(i <= mid && j <= right) {
+        if(vec[i] < vec[j]) tmp.push_back(vec[i++]);
+        else tmp.push_back(vec[j++]);
+    }
+
+    // 处理剩余部分
+    while (i <= mid) tmp.push_back(vec[i++]);
+    while (j <= right) tmp.push_back(vec[j++]);
+
+    // 拷贝回原数组
+    for (int k = 0; k < tmp.size(); ++k) {
+        vec[left + k] = tmp[k];
+    }
+}
+
+void merge_sort(vector<int>& vec, int left, int right) {
+    if (left >= right) return;
+
+    int mid = left + (right - left) / 2;
+    merge_sort(vec, left, mid);      // 排左边
+    merge_sort(vec, mid + 1, right); // 排右边
+    merge(vec, left, mid, right);   // 合并
+}
+```
+| 情况     | 时间复杂度 | 空间复杂度 | 是否稳定 | 说明           |
+| ---------- | ------------ | ------------ | ---------- | ---------------- |
+| 最好情况 | O(n log n) | O(n)       | ✅ 是    | 分治均匀       |
+| 平均情况 | O(n log n) | O(n)       | ✅ 是    | 每层合并排序   |
+| 最坏情况 | O(n log n) | O(n)       | ✅ 是    | 每层都需要合并 |
+
+- 稳定性：不会交换相同元素的相对顺序 ✅
+- 空间复杂度较高（需要临时数组） ❗
+- 时间复杂度稳定：总是 O(n log n)
+
+适用场景与数据:
+- **适合排序大型数组、链表**
+- **适合对稳定性有要求的排序**
+- **在外部排序中广泛使用**（处理磁盘或内存不足时）
+
+---
