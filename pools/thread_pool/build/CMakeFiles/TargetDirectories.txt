@@ -1,0 +1,3 @@
+/sugar/practise_by_dev_coding/pools/thread_pool/build/CMakeFiles/rebuild_cache.dir
+/sugar/practise_by_dev_coding/pools/thread_pool/build/CMakeFiles/edit_cache.dir
+/sugar/practise_by_dev_coding/pools/thread_pool/build/CMakeFiles/test_thread_pool.dir
