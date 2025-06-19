@@ -1,0 +1,20 @@
+# 忽略整个文件夹
+.vscode/
+node_modules/
+build/
+
+# 忽略特定文件
+*.log
+*.tmp
+.DS_Store
+
+# 忽略特定路径的文件
+src/config/local.json
+*.local
+
+# 使用通配符
+*.pyc
+__pycache__/
+
+# 忽略但保留文件夹结构（使用 !）
+!src/.vscode/settings.json
