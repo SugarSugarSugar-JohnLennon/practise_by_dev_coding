@@ -1,34 +1,52 @@
-# I/O框架
----
-I/O复用（Input/Output Multiplexing）是一种在单个线程或进程中同时处理多个I/O操作的技术，主要用于网络编程或需要同时处理多个输入输出流的场景。
----
-## 基本概念
-传统阻塞I/O模型中，每个I/O操作（如读取socket数据）会阻塞当前线程，直到数据就绪。而I/O复用技术允许你用一个线程同时监听多个I/O事件，只有当某个I/O事件准备就绪时，程序才去处理它。
----
-## 常见的I/O复用机制（以Linux为例）：
-- select	最早的I/O复用接口，支持的最大文件描述符数量有限（通常为1024）
-- poll	类似于select，但没有描述符数量限制
-- epoll	Linux专有，更高效，支持“事件驱动”模式，适合大量并发连接场景
----
-## 工作流程（以 epoll 为例）：
-1. 创建一个 epoll 实例。
-2. 注册你感兴趣的多个文件描述符（如 socket）及其事件类型（读、写等）。
-3. 调用 epoll_wait 等待事件触发。
-4. 当某个描述符准备好时返回，你再去处理它。
----
-## 优势
-1. 避免每个连接一个线程，节省资源。
-2. 可扩展性强，适合高并发服务（如Web服务器、聊天服务器）。
-3. 与非阻塞I/O结合使用效率更高。
-```cpp
-int epfd = epoll_create();
-epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd1, event1);
-epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd2, event2);
+# I/O复用框架学习记录（select/poll/epoll）
 
-while (1) {
-    int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
-    for (int i = 0; i < n; i++) {
-        handle_event(events[i].data.fd);
-    }
-}
+---
+
+## 目录结构
+
+- select/  —— select多路复用聊天室示例
+- poll/    —— poll多路复用聊天室示例
+- epoll/   —— epoll多路复用聊天室示例
+
+每个子目录均包含：
+- server.c  多客户端聊天室服务器
+- client.c  聊天室客户端
+- CMakeLists.txt  CMake构建配置
+- build.sh  一键构建脚本
+- README.md  个人学习笔记
+
+---
+
+## 功能简介
+
+- 支持多客户端聊天室，消息互转，服务端可并发处理多个连接。
+- select、poll、epoll三种I/O复用方式均有完整实现，便于对比学习。
+- 代码结构统一，便于迁移和扩展。
+
+---
+
+## 编译与运行
+
+以epoll为例：
+```sh
+cd epoll
+bash build.sh
+./bin/server
+# 新开终端，运行多个客户端
+./bin/client
 ```
+select和poll用法完全一致。
+
+---
+
+## 学习建议
+
+- 建议先阅读select、poll、epoll各自README.md，理解原理和代码结构。
+- 逐步对比三种实现，体会API差异和性能提升。
+- 可自行扩展为群聊、私聊、文件传输等功能，加深理解。
+
+---
+
+## 个人总结
+
+I/O复用是高性能网络编程的基础。通过本项目的多实现对比，能系统掌握select、poll、epoll的用法和适用场景，为后续深入学习Reactor、Proactor等模型打下基础。

@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(epoll_chat C)
+set(CMAKE_C_STANDARD 99)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+add_executable(server server.c)
+add_executable(client client.c)
+set_target_properties(server PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set_target_properties(client PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin) 
