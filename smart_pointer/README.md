@@ -10,6 +10,183 @@
 2. **`MyWeakPtr`** - 弱引用智能指针  
 3. **`MyUniquePtr`** - 独占所有权智能指针
 
+## API 接口文档
+
+### MyUniquePtr<T> 接口
+
+#### 构造函数
+```cpp
+explicit MyUniquePtr(T* p = nullptr) noexcept;  // 从原始指针构造
+MyUniquePtr(MyUniquePtr&& other) noexcept;      // 移动构造
+```
+
+#### 赋值操作
+```cpp
+MyUniquePtr& operator=(MyUniquePtr&& other) noexcept;  // 移动赋值
+// 拷贝构造和拷贝赋值被禁用 (= delete)
+```
+
+#### 解引用操作
+```cpp
+T& operator*() const noexcept;   // 解引用操作符
+T* operator->() const noexcept;  // 箭头操作符
+```
+
+#### 成员函数
+```cpp
+T* get() const noexcept;                    // 获取原始指针
+T* release() noexcept;                      // 释放所有权，返回原始指针
+void reset(T* p = nullptr) noexcept;        // 重置管理的对象
+void swap(MyUniquePtr& other) noexcept;     // 交换两个 unique_ptr
+```
+
+#### 非成员函数
+```cpp
+template<typename T>
+void swap(MyUniquePtr<T>& a, MyUniquePtr<T>& b) noexcept;  // 交换函数
+```
+
+### MySharedPtr<T> 接口
+
+#### 构造函数
+```cpp
+explicit MySharedPtr(T* p = nullptr);                    // 从原始指针构造
+MySharedPtr(const MySharedPtr& other) noexcept;          // 拷贝构造
+MySharedPtr(MySharedPtr&& other) noexcept;               // 移动构造
+explicit MySharedPtr(const MyWeakPtr<T>& other);         // 从 weak_ptr 构造
+```
+
+#### 赋值操作
+```cpp
+MySharedPtr& operator=(const MySharedPtr& other) noexcept;  // 拷贝赋值
+MySharedPtr& operator=(MySharedPtr&& other) noexcept;       // 移动赋值
+```
+
+#### 解引用操作
+```cpp
+T& operator*() const noexcept;   // 解引用操作符
+T* operator->() const noexcept;  // 箭头操作符
+```
+
+#### 成员函数
+```cpp
+T* get() const noexcept;                    // 获取原始指针
+long use_count() const noexcept;            // 获取强引用计数
+void reset(T* p = nullptr);                 // 重置管理的对象
+void swap(MySharedPtr& other) noexcept;     // 交换两个 shared_ptr
+```
+
+### MyWeakPtr<T> 接口
+
+#### 构造函数
+```cpp
+MyWeakPtr() noexcept;                                    // 默认构造
+MyWeakPtr(const MySharedPtr<T>& sp) noexcept;           // 从 shared_ptr 构造
+MyWeakPtr(const MyWeakPtr& other) noexcept;              // 拷贝构造
+MyWeakPtr(MyWeakPtr&& other) noexcept;                   // 移动构造
+```
+
+#### 赋值操作
+```cpp
+MyWeakPtr& operator=(const MyWeakPtr& other) noexcept;   // 拷贝赋值
+MyWeakPtr& operator=(const MySharedPtr<T>& sp) noexcept; // 从 shared_ptr 赋值
+MyWeakPtr& operator=(MyWeakPtr&& other) noexcept;        // 移动赋值
+```
+
+#### 成员函数
+```cpp
+bool expired() const noexcept;              // 检查对象是否已销毁
+MySharedPtr<T> lock() const noexcept;       // 尝试获取 shared_ptr
+long use_count() const noexcept;            // 获取强引用计数
+void reset() noexcept;                      // 重置 weak_ptr
+void swap(MyWeakPtr& other) noexcept;       // 交换两个 weak_ptr
+```
+
+## 使用示例
+
+### MyUniquePtr 使用示例
+```cpp
+// 创建 unique_ptr
+MyUniquePtr<int> ptr1(new int(42));
+
+// 解引用
+int value = *ptr1;  // 42
+ptr1->someMethod(); // 调用成员函数
+
+// 所有权转移
+MyUniquePtr<int> ptr2 = std::move(ptr1);  // ptr1 变为 nullptr
+
+// 重置
+ptr2.reset(new int(100));  // 释放旧对象，管理新对象
+
+// 释放所有权
+int* raw_ptr = ptr2.release();  // ptr2 变为 nullptr
+delete raw_ptr;  // 手动删除
+```
+
+### MySharedPtr 使用示例
+```cpp
+// 创建 shared_ptr
+MySharedPtr<std::string> sp1(new std::string("Hello"));
+
+// 拷贝构造（增加引用计数）
+MySharedPtr<std::string> sp2 = sp1;  // 引用计数变为 2
+
+// 解引用
+std::cout << *sp1 << std::endl;  // "Hello"
+sp1->length();  // 调用成员函数
+
+// 检查引用计数
+std::cout << "use_count: " << sp1.use_count() << std::endl;  // 2
+
+// 重置
+sp1.reset();  // 引用计数减为 1
+```
+
+### MyWeakPtr 使用示例
+```cpp
+// 创建 shared_ptr
+MySharedPtr<std::string> sp(new std::string("World"));
+
+// 从 shared_ptr 创建 weak_ptr
+MyWeakPtr<std::string> wp = sp;
+
+// 检查是否过期
+if (!wp.expired()) {
+    // 尝试获取 shared_ptr
+    MySharedPtr<std::string> sp2 = wp.lock();
+    if (sp2) {
+        std::cout << *sp2 << std::endl;  // "World"
+    }
+}
+
+// shared_ptr 销毁后
+sp.reset();
+if (wp.expired()) {
+    std::cout << "Object has been destroyed" << std::endl;
+}
+```
+
+### 循环引用解决方案示例
+```cpp
+struct Node {
+    MySharedPtr<Node> next;
+    MyWeakPtr<Node> prev;  // 使用 weak_ptr 避免循环引用
+    
+    Node() { std::cout << "Node created" << std::endl; }
+    ~Node() { std::cout << "Node destroyed" << std::endl; }
+};
+
+// 创建循环引用
+MySharedPtr<Node> node1(new Node());
+MySharedPtr<Node> node2(new Node());
+
+node1->next = node2;  // 强引用
+node2->prev = node1;  // 弱引用，不会增加引用计数
+
+// 离开作用域时，对象会被正确销毁
+```
+
 ## 项目结构
 
 ```
