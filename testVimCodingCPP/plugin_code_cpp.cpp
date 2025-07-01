@@ -1,6 +1,9 @@
 #include <iostream>
+using namespace std;
+
+void vimIsGood() { cout << "code by vim\n";  }
 
 int main() {
-    std::cout << "用vim写的代码" << std::endl;
+    vimIsGood();
     return 0;
 }
