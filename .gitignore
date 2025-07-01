@@ -3,6 +3,9 @@
 node_modules/
 build/
 
+# 忽略vim配置文件
+compile_flags.txt
+
 # 忽略特定文件
 *.log
 *.tmp
