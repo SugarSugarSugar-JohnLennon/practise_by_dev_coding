@@ -12,8 +12,13 @@
 using namespace std;
 
 int partition(vector<int>& nums, int low, int high) {
-    int pivot = nums[low];
+    // int pivot = nums[low]; 普通写法
 
+    // 随机选择pivot，避免最坏情况
+    int randomIndex = low + rand() % (high - low + 1);
+    swap(nums[low], nums[randomIndex]);
+    int pivot = nums[low];
+ 
     while (low < high) {
         while (low < high && nums[high] >= pivot) --high;
         nums[low] = nums[high];
